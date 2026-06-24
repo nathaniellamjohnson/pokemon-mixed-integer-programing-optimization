@@ -1,4 +1,3 @@
-import React from 'react';
 import PokemonDisplayCard from "./PokemonDisplayCard"
 import { type PokemonData } from "./MIPSolver.ts";
 

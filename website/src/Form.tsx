@@ -1,5 +1,3 @@
-import React from "react";
-
 function Form({ onSubmit }: { onSubmit: (formData: FormData) => void }) {
     return (
         <div className="w-full max-w-3xl mx-auto bg-slate-800 p-6 rounded-xl shadow-2xl border border-slate-700">
