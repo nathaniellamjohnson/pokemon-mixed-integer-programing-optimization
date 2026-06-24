@@ -99,7 +99,8 @@ export const solvePokemonTeam = (formData: FormData, allPokemon: PokemonData[]):
             if (seAgainstTarget) model.variables[varName][`se_against_${targetType}`] = 1;
         });
     });
-    const results = solver.Solve(model);
+    
+    const results = solver.Solve(model) as Record<string, any> & { feasible: boolean };;
 
     if (results.feasible) {
         const selectedKeys = Object.keys(results).filter(
