@@ -25,9 +25,9 @@ function PokemonDisplayCard({ pokemon_info, isPlaceholder = false }: { pokemon_i
     // FIXED: Instead of storing the string in state, store an error flag.
     const [useFallbackImg, setUseFallbackImg] = useState(false);
 
-    const pokeballSrc = "/pokeapi_sprites/sprites/items/poke-ball.png";
-    const baseSprite = `/pokeapi_sprites/sprites/pokemon/${pokemon_info?.sprite}`;
-    const fallbackSprite = `/pokeapi_sprites/sprites/pokemon/other/official-artwork/${pokemon_info?.sprite}`;
+    const pokeballSrc = "/data/pokeapi_sprites/sprites/sprites/items/poke-ball.png";
+    const baseSprite = `/data/pokeapi_sprites/sprites/sprites/pokemon/${pokemon_info?.sprite}`;
+    const fallbackSprite = `/data/pokeapi_sprites/sprites/sprites/pokemon/other/official-artwork/${pokemon_info?.sprite}`;
     
     // Dynamically decide which image to show based on state and props
     const currentImgSrc = isPlaceholder 
