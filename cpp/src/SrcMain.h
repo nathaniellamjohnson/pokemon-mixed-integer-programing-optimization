@@ -2,9 +2,11 @@
 #include <cstdlib>
 #include <iostream>
 #include <memory>
+#include <vector>
 #include <unordered_map>
 
 #include "Pokemon.h"
+#include "InputOutput.h"
 #include "csv.h"
 
 #include "absl/base/log_severity.h"
@@ -18,7 +20,7 @@
 #include "ortools/sat/cp_model.pb.h"
 #include "ortools/sat/cp_model_solver.h"
 
-void ProcessCommandArgs(int argc, const char *argv[]);
+OutputValues ProcessCommandArgs(const InputOptions &input_options);
 
 static const std::unordered_map<std::string, Type> type_effectiveness = {
     {"Normal", {"Normal", {}, {"Fighting"}, {}}},

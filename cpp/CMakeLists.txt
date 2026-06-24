@@ -28,6 +28,10 @@ else()
 endif()
 
 # TODO: ensure that below works with all 
+# Force Boost and other dependencies to compile without thread-detection fallbacks
+# Enable native POSIX thread emulation for Emscripten toolchain
+add_compile_options(-pthread)
+add_link_options(-pthread)
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
 option(POKEMON_FETCH_OR_TOOLS "Fetch OR-Tools with FetchContent" ON)

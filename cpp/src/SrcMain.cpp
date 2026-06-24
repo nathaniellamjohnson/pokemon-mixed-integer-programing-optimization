@@ -2,8 +2,77 @@
 
 // TODO : CONST all the mpsolver stuff as necessary
 
-void ProcessCommandArgs(int argc, const char *argv[])
+static double GetObjectiveValue(const Pokemon &pokemon, OptimizerOptions to_optimize)
 {
+    switch (to_optimize)
+    {
+    case BST:
+        return pokemon.BaseStatTotal;
+    case PokedexNum:
+        return static_cast<double>(pokemon.PokedexNumber);
+    case HP:
+        return static_cast<double>(pokemon.HP);
+    case Attack:
+        return static_cast<double>(pokemon.Attack);
+    case Defense:
+        return static_cast<double>(pokemon.Defense);
+    case SpAttack:
+        return static_cast<double>(pokemon.SpecialAtk);
+    case SpDefense:
+        return static_cast<double>(pokemon.SpecialDef);
+    case Speed:
+        return static_cast<double>(pokemon.Speed);
+    }
+
+    return pokemon.BaseStatTotal;
+}
+
+static bool IsGenerationAllowed(const std::string &generation, const InputOptions &input_options)
+{
+    if (generation == "1")
+    {
+        return input_options.allowGen1;
+    }
+    if (generation == "2")
+    {
+        return input_options.allowGen2;
+    }
+    if (generation == "3")
+    {
+        return input_options.allowGen3;
+    }
+    if (generation == "4")
+    {
+        return input_options.allowGen4;
+    }
+    if (generation == "5")
+    {
+        return input_options.allowGen5;
+    }
+    if (generation == "6")
+    {
+        return input_options.allowGen6;
+    }
+    if (generation == "7")
+    {
+        return input_options.allowGen7;
+    }
+    if (generation == "8")
+    {
+        return input_options.allowGen8;
+    }
+    if (generation == "9")
+    {
+        return input_options.allowGen9;
+    }
+
+    return true;
+}
+
+OutputValues ProcessCommandArgs(const InputOptions &input_options)
+{
+    OutputValues output_values{};
+
     // A. Load CSV
     // TODO: Fix this such that we aren't hard linking to files
     std::vector<Pokemon> pokemon_data;
@@ -95,7 +164,7 @@ void ProcessCommandArgs(int argc, const char *argv[])
     if (!solver)
     {
         LOG(WARNING) << "Could not create solver SAT";
-        return;
+        return output_values;
     }
     const double infinity = solver->infinity();
 
@@ -120,37 +189,43 @@ void ProcessCommandArgs(int argc, const char *argv[])
     for (size_t i = 0; i < pokemon_data.size(); i++)
     {
         auto pokemon = pokemon_data[i];
-        if (pokemon.Legendary == 1)
+        if (!IsGenerationAllowed(pokemon.Generation, input_options))
+        {
+            operations_research::MPConstraint *const constraint =
+                solver->MakeRowConstraint(0.0, 0.0, "generation" + std::to_string(i));
+            constraint->SetCoefficient(pokemon_vars[i], 1.0);
+        }
+        if (pokemon.Legendary && !input_options.allowLegendaries)
         {
             operations_research::MPConstraint *const constraint =
                 solver->MakeRowConstraint(0.0, 0.0, "legend" + std::to_string(i));
             constraint->SetCoefficient(pokemon_vars[i], 1.0);
         }
-        if (pokemon.Mythical == 1)
+        if (pokemon.Mythical && !input_options.allowMythicals)
         {
             operations_research::MPConstraint *const constraint =
                 solver->MakeRowConstraint(0.0, 0.0, "mythical" + std::to_string(i));
             constraint->SetCoefficient(pokemon_vars[i], 1.0);
         }
-        if (pokemon.SubLegendary == 1)
+        if (pokemon.SubLegendary && !input_options.allowSubLegendaries)
         {
             operations_research::MPConstraint *const constraint =
                 solver->MakeRowConstraint(0.0, 0.0, "sublegendary" + std::to_string(i));
             constraint->SetCoefficient(pokemon_vars[i], 1.0);
         }
-        if (pokemon.Mega == 1)
+        if (pokemon.Mega && !input_options.allowMegas)
         {
             operations_research::MPConstraint *const constraint =
                 solver->MakeRowConstraint(0.0, 0.0, "mega" + std::to_string(i));
             constraint->SetCoefficient(pokemon_vars[i], 1.0);
         }
-        if (pokemon.UltraBeast == 1)
+        if (pokemon.UltraBeast && !input_options.allowUltraBeast)
         {
             operations_research::MPConstraint *const constraint =
                 solver->MakeRowConstraint(0.0, 0.0, "ultrabeast" + std::to_string(i));
             constraint->SetCoefficient(pokemon_vars[i], 1.0);
         }
-        if (pokemon.Paradox == 1)
+        if (pokemon.Paradox && !input_options.allowParadox)
         {
             operations_research::MPConstraint *const constraint =
                 solver->MakeRowConstraint(0.0, 0.0, "paradox" + std::to_string(i));
@@ -234,7 +309,8 @@ void ProcessCommandArgs(int argc, const char *argv[])
     operations_research::MPObjective *const objective(solver->MutableObjective());
     for (size_t i = 0; i < pokemon_data.size(); i++)
     {
-        objective->SetCoefficient(pokemon_vars[i], pokemon_data[i].BaseStatTotal);
+        objective->SetCoefficient(pokemon_vars[i],
+                                  GetObjectiveValue(pokemon_data[i], input_options.to_optimize));
     }
 
     objective->SetMaximization();
@@ -254,7 +330,10 @@ void ProcessCommandArgs(int argc, const char *argv[])
     {
         if (pokemon_vars[i]->solution_value() == 1.0)
         {
-            LOG(INFO) << pokemon_data[i].Name;
+            output_values.chosen_pokemon.push_back(pokemon_data[i]);
         }
     }
+
+    output_values.objective_value = static_cast<size_t>(objective->Value());
+    return output_values;
 }
